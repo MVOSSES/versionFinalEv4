@@ -12,6 +12,7 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity() {
 
     private lateinit var consumoTextView: TextView
+    private lateinit var costTextView: TextView  // Nuevo TextView para mostrar el coste
     private lateinit var refreshButton: Button
     private var consumoList = mutableListOf<Int>()  // Lista para almacenar los valores de consumo
 
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         consumoTextView = findViewById(R.id.consumoTextView)
+        costTextView = findViewById(R.id.costTextView)  // Inicializamos el nuevo TextView
         refreshButton = findViewById(R.id.refreshButton)
 
         // Cargar datos de Firebase al inicio
@@ -30,9 +32,16 @@ class MainActivity : AppCompatActivity() {
             if (consumoList.isNotEmpty()) {
                 val randomIndex = Random.nextInt(consumoList.size)
                 val randomConsumo = consumoList[randomIndex]
+
+                // Mostrar el valor de consumo
                 consumoTextView.text = "Consumo: $randomConsumo"
+
+                // Calcular el coste y mostrarlo
+                val coste = calculateCost(randomConsumo)
+                costTextView.text = "Coste: $coste"
             } else {
                 consumoTextView.text = "No hay datos disponibles"
+                costTextView.text = "Coste: 0"
             }
         }
     }
@@ -69,8 +78,15 @@ class MainActivity : AppCompatActivity() {
                         val randomIndex = Random.nextInt(consumoList.size)
                         val randomConsumo = consumoList[randomIndex]
                         consumoTextView.text = "Consumo: $randomConsumo"
+
+                        // Calcular el coste basado en el consumo
+                        val coste = calculateCost(randomConsumo)
+
+                        // Mostrar el coste calculado
+                        costTextView.text = "Coste: $coste"
                     } else {
                         consumoTextView.text = "No hay datos disponibles"
+                        costTextView.text = "Coste: 0"
                     }
                 }
 
@@ -78,8 +94,14 @@ class MainActivity : AppCompatActivity() {
                 e.printStackTrace()
                 runOnUiThread {
                     consumoTextView.text = "Error al obtener datos"
+                    costTextView.text = "Coste: 0"
                 }
             }
         }.start()
+    }
+
+    // Función para calcular el coste multiplicando el consumo por 150
+    private fun calculateCost(consumo: Int): Int {
+        return consumo * 150  // Multiplica el consumo por 150
     }
 }

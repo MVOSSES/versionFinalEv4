@@ -7,11 +7,13 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.net.URL
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var consumoTextView: TextView
     private lateinit var refreshButton: Button
+    private var consumoList = mutableListOf<Int>()  // Lista para almacenar los valores de consumo
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,8 +22,18 @@ class MainActivity : AppCompatActivity() {
         consumoTextView = findViewById(R.id.consumoTextView)
         refreshButton = findViewById(R.id.refreshButton)
 
+        // Cargar datos de Firebase al inicio
+        fetchConsumoData()
+
         refreshButton.setOnClickListener {
-            fetchConsumoData()
+            // Mostrar un dato aleatorio cada vez que se presiona el botón
+            if (consumoList.isNotEmpty()) {
+                val randomIndex = Random.nextInt(consumoList.size)
+                val randomConsumo = consumoList[randomIndex]
+                consumoTextView.text = "Consumo: $randomConsumo"
+            } else {
+                consumoTextView.text = "No hay datos disponibles"
+            }
         }
     }
 
@@ -40,21 +52,28 @@ class MainActivity : AppCompatActivity() {
                 // Convertimos el JSON recibido en un objeto
                 val jsonObject = JSONObject(result)
 
-                // Accede al primer valor de consumo (la estructura es dinámica, así que necesitamos acceder a una de las claves)
-                val keys = jsonObject.keys()
-                if (keys.hasNext()) {
-                    val key = keys.next()  // Obtiene el primer identificador (por ejemplo, OEP30b9Ai3koPiRO0dE)
-                    val consumo = jsonObject.getInt(key)  // Obtiene el valor asociado a esa clave
+                // Limpiar la lista antes de llenarla
+                consumoList.clear()
 
-                    // Actualizamos la UI en el hilo principal
-                    runOnUiThread {
-                        consumoTextView.text = "Consumo: $consumo"
-                    }
-                } else {
-                    runOnUiThread {
+                // Recorrer todas las claves y agregar sus valores a la lista consumoList
+                val keys = jsonObject.keys()
+                while (keys.hasNext()) {
+                    val key = keys.next()  // Obtiene cada clave (por ejemplo, OEP30b9Ai3koPiRO0dE)
+                    val consumo = jsonObject.getInt(key)  // Obtiene el valor asociado a esa clave
+                    consumoList.add(consumo)  // Agrega el valor de consumo a la lista
+                }
+
+                // Si la lista tiene datos, se actualiza la UI
+                runOnUiThread {
+                    if (consumoList.isNotEmpty()) {
+                        val randomIndex = Random.nextInt(consumoList.size)
+                        val randomConsumo = consumoList[randomIndex]
+                        consumoTextView.text = "Consumo: $randomConsumo"
+                    } else {
                         consumoTextView.text = "No hay datos disponibles"
                     }
                 }
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 runOnUiThread {
